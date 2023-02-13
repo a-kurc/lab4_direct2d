@@ -13,6 +13,30 @@
 #include <cstdlib>
 #pragma comment(lib, "d2d1")
 
+
+#include <array>
+#include <windows.h>
+#include <wincodec.h>
+/*#include <objbase.h>*/
+//#include <chrono>
+//#include <thread>
+//#include <iostream>
+//#include <ctime>
+#include <d2d1_1.h>
+#include <dwrite_3.h>
+#include <dwrite.h>
+//#include <sstream>
+#include <cstdio>
+#pragma comment(lib, "windowscodecs.lib")
+#pragma comment(lib, "d2d1")
+#pragma comment(lib, "windowscodecs")
+#pragma comment(lib, "Dwrite")
+
+using D2D1::RectF;
+using D2D1::Ellipse;
+using D2D1::BitmapProperties;
+using D2D1::PixelFormat;
+
 using D2D1::RenderTargetProperties;
 using D2D1::HwndRenderTargetProperties;
 using D2D1::SizeU;
