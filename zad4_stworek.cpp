@@ -253,8 +253,6 @@ void increase_time()
 LRESULT CALLBACK WindowProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
 {
     GetClientRect(hwnd, &rc);
-    ID2D1PathGeometry* path_mouth = nullptr;
-    ID2D1GeometrySink* path_sink_mouth = nullptr;
     D2D1_POINT_2F ellipse_center_eye1 = {};
     D2D1_POINT_2F ellipse_center_eye2 = {};
     half_y = (rc.bottom - rc.top) / 2;
@@ -313,7 +311,7 @@ LRESULT CALLBACK WindowProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
     case WM_TIMER:
     {
         time_counter++;
-        if (time_counter >= 5) {
+        if (time_counter >= 1200) {
             time_counter = 0;
 
             increase_time();
@@ -338,176 +336,23 @@ LRESULT CALLBACK WindowProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
         ellipse_center_pupil2.y += half_y;
 
         ID2D1SolidColorBrush* brush = nullptr;
-        ID2D1SolidColorBrush* brush1 = nullptr;
 
-        // - Interfejsy do obs³ugi œcie¿ki
-        ID2D1PathGeometry* path = nullptr;
-        ID2D1GeometrySink* path_sink = nullptr;
-        ID2D1PathGeometry* path_nose = nullptr;
-        ID2D1GeometrySink* path_sink_nose = nullptr;
 
         // Sta³e z kolorami
-        D2D1_COLOR_F const brush_color_white =
-        { .r = 1.0f, .g = 1.0f, .b = 1.0f, .a = 1.0f };
-        D2D1_COLOR_F const brush_color_black =
-        { .r = 0, .g = 0, .b = 0, .a = 1 };
-        // Kolory dla nosa
-        D2D1_COLOR_F const brush1_color =
-        { .r = 0.2f, .g = 0.2f, .b = 0.2f, .a = 1.0f };
         D2D1_COLOR_F const brush_color_violet =
         { .r = 0.8f, .g = 0.4f, .b = 0.8f, .a = 1.0f };
 
         // Utworzenie pêdzli
         d2d_render_target->CreateSolidColorBrush(brush_color_violet, &brush);
-        d2d_render_target->CreateSolidColorBrush(brush1_color, &brush1);
-        
-         // Utworzenie i zbudowanie geometrii œcie¿ki (cia³a)
-        d2d_factory->CreatePathGeometry(&path);
-        path->Open(&path_sink);
 
-        path_sink->BeginFigure(Point2F(half_x - 180, half_y - 100), D2D1_FIGURE_BEGIN_FILLED);
-        path_sink->AddBezier(BezierSegment( Point2F(half_x - 400, half_y + 310), 
-            Point2F(half_x - 200, half_y + 315), Point2F(half_x, half_y + 316)));
-        path_sink->AddBezier(BezierSegment( Point2F(half_x + 200, half_y + 315), 
-            Point2F(half_x + 400, half_y + 310), Point2F(half_x + 180, half_y - 100)));
-        path_sink->AddBezier(BezierSegment( Point2F(half_x + 350, half_y - 200), 
-            Point2F(half_x + 200, half_y - 370), Point2F(half_x + 100, half_y - 230)));
-        path_sink->AddQuadraticBezier(QuadraticBezierSegment(
-            Point2F(half_x, half_y - 300), Point2F(half_x - 100, half_y - 230)));
-        path_sink->AddBezier(BezierSegment( Point2F(half_x - 200, half_y - 370), 
-            Point2F(half_x - 350, half_y - 200), Point2F(half_x - 180, half_y - 100)));
-        path_sink->EndFigure(D2D1_FIGURE_END_OPEN);
-        path_sink->Close();
 
-        // Utworzenie i zbudowanie geometrii nosa
-        d2d_factory->CreatePathGeometry(&path_nose);
-        path_nose->Open(&path_sink_nose);
-        path_sink_nose->BeginFigure(Point2F(half_x - 75, half_y + 50), D2D1_FIGURE_BEGIN_FILLED);
-        path_sink_nose->AddBezier(BezierSegment( Point2F(half_x - 100, half_y - 10), 
-            Point2F(half_x + 100, half_y - 10), Point2F(half_x + 75, half_y + 50)));
-        path_sink_nose->AddQuadraticBezier(QuadraticBezierSegment(
-            Point2F(half_x, half_y + 175), Point2F(half_x - 75, half_y + 50)));
-        path_sink_nose->EndFigure(D2D1_FIGURE_END_OPEN);
-        path_sink_nose->Close();
-
-        // Utworzenie i zbudowanie geometrii ust
-        d2d_factory->CreatePathGeometry(&path_mouth);
-        path_mouth->Open(&path_sink_mouth);
-        path_sink_mouth->BeginFigure(Point2F(half_x - 100, half_y + 160), D2D1_FIGURE_BEGIN_HOLLOW);
-        if (GetAsyncKeyState(VK_LBUTTON) >= 0)
-            path_sink_mouth->AddBezier(BezierSegment(
-                Point2F(half_x - 70, half_y + 125), Point2F(half_x + 70, half_y + 125), 
-                    Point2F(half_x + 100, half_y + 160)));
-        else 
-            path_sink_mouth->AddBezier(BezierSegment(
-                Point2F(half_x - 70, half_y + 200), Point2F(half_x + 70, half_y + 200), 
-                    Point2F(half_x + 100, half_y + 160)));
-        path_sink_mouth->EndFigure(D2D1_FIGURE_END_OPEN);
-        path_sink_mouth->Close();
-
-        // - Pêdzel - gradient promienisty
-        ID2D1RadialGradientBrush* rad_brush_eye1 = nullptr;
-        ID2D1RadialGradientBrush* rad_brush_eye2 = nullptr;
-        ID2D1RadialGradientBrush* rad_brush_body = nullptr;
-        ID2D1GradientStopCollection* rad_stops_eye1 = nullptr;
-        ID2D1GradientStopCollection* rad_stops_eye2 = nullptr;
-        ID2D1GradientStopCollection* rad_stops_body = nullptr;
-        UINT const NUM_RAD_STOPS_EYE = 2;
-        UINT const NUM_RAD_STOPS_BODY = 5;
-        D2D1_GRADIENT_STOP rad_stops_data_eye[NUM_RAD_STOPS_EYE];
-        D2D1_GRADIENT_STOP rad_stops_data_body[NUM_RAD_STOPS_BODY];
-
-        // Sta³e ustawienia geometrii
-        D2D1_POINT_2F const center_body = { .x = half_x, .y = half_y };
-        D2D1_POINT_2F const eye_ellipse_radii = { .x = r_eye, .y = r_eye };
-        D2D1_POINT_2F const pupil_ellipse_radii = { .x = r_pupil, .y = r_pupil };
-
-        rad_stops_data_eye[0] =
-        { .position = 0.75f, .color = ColorF(1.0f, 1.0f, 1.0f, 1) };
-        rad_stops_data_eye[1] =
-        { .position = 1.0f, .color = ColorF(0.68f, 0.68f, 0.68f, 1) };
-
-        rad_stops_data_body[0] =
-        { .position = 0.1, .color = ColorF(1.0f, 0.9f, 1.0f, 1) };
-        rad_stops_data_body[1] =
-        { .position = 0.55f, .color = ColorF(0.0f, 0.87f, 0.0f, 1) };
-        rad_stops_data_body[2] =
-        { .position = 0.70f, .color = ColorF(0.0f, 0.75f, 0.0f, 1) };
-        rad_stops_data_body[3] =
-        { .position = 0.8f, .color = ColorF(0.0f, 0.6f, 0.0f, 1) };
-        rad_stops_data_body[4] =
-        { .position = 0.95f, .color = ColorF(0.0f, 0.45f, 0.0f, 1) };
-
-        // Utworzenie gradientu promienistego
-        d2d_render_target->CreateGradientStopCollection(
-            rad_stops_data_eye, NUM_RAD_STOPS_EYE, &rad_stops_eye1);
-        if (rad_stops_eye1) {
-            d2d_render_target->CreateRadialGradientBrush(
-                RadialGradientBrushProperties(ellipse_center_eye1,
-                    Point2F(0, 0), 95, 95),
-                rad_stops_eye1, &rad_brush_eye1);
-        }
-        d2d_render_target->CreateGradientStopCollection(
-            rad_stops_data_eye, NUM_RAD_STOPS_EYE, &rad_stops_eye2);
-        if (rad_stops_eye2) {
-            d2d_render_target->CreateRadialGradientBrush(
-                RadialGradientBrushProperties(ellipse_center_eye2,
-                    Point2F(0, 0), 95, 95),
-                rad_stops_eye2, &rad_brush_eye2);
-        }
-        d2d_render_target->CreateGradientStopCollection(
-            rad_stops_data_body, NUM_RAD_STOPS_BODY, &rad_stops_body);
-        if (rad_stops_body) {
-            d2d_render_target->CreateRadialGradientBrush(
-                RadialGradientBrushProperties(center_body,
-                    Point2F(0, 70), 350, 350),
-                rad_stops_body, &rad_brush_body);
-        }
         
         // Rysowanie
         d2d_render_target->BeginDraw();
-        d2d_render_target->Clear(brush_color_white);
+        d2d_render_target->Clear(brush_color_violet);
 
-        float brush_body_width = 5.0f;
-        float brush_eye_width = 3.0f;
-        float brush_mouth_width = 9.0f;
-
-        // Cia³o z gradientem
-        /*d2d_render_target->FillGeometry(path, rad_brush_body);
-        d2d_render_target->DrawGeometry(path, brush, brush_body_width);
-
-        // Oczy z gradientem
-        d2d_render_target->FillEllipse(
-            Ellipse(ellipse_center_eye1, eye_ellipse_radii.x, eye_ellipse_radii.y),
-            rad_brush_eye1);
-        d2d_render_target->DrawEllipse(
-            Ellipse(ellipse_center_eye1, eye_ellipse_radii.x, eye_ellipse_radii.y),
-            brush, brush_eye_width);
-
-        d2d_render_target->FillEllipse(
-            Ellipse(ellipse_center_eye2, eye_ellipse_radii.x, eye_ellipse_radii.y),
-            rad_brush_eye2);
-        d2d_render_target->DrawEllipse(
-            Ellipse(ellipse_center_eye2, eye_ellipse_radii.x, eye_ellipse_radii.y),
-            brush, brush_eye_width);
-
-        // rednice
-        d2d_render_target->FillEllipse(
-            Ellipse(ellipse_center_pupil1, pupil_ellipse_radii.x, pupil_ellipse_radii.y),
-            brush);
-        d2d_render_target->DrawEllipse(
-            Ellipse(ellipse_center_pupil1, pupil_ellipse_radii.x, pupil_ellipse_radii.y),
-            brush, brush_eye_width);
-
-        d2d_render_target->FillEllipse(
-            Ellipse(ellipse_center_pupil2, pupil_ellipse_radii.x, pupil_ellipse_radii.y),
-            brush);
-        d2d_render_target->DrawEllipse(
-            Ellipse(ellipse_center_pupil2, pupil_ellipse_radii.x, pupil_ellipse_radii.y),
-            brush, brush_eye_width);*/
 
         // Nos i usta
-        //timev += 0.03f;
         d2d_render_target->FillRectangle(D2D1::RectF(0, 0, rc.right, rc.bottom), brush);
         float angle = -8.0f; //* sin(timev);
         // Zachowujemy macierz transofmacji
@@ -519,10 +364,6 @@ LRESULT CALLBACK WindowProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
         Matrix3x2F rotate = Matrix3x2F::Rotation(angle, Point2F(half_x, half_y));
         rotate.SetProduct(rotate, transformation);
         d2d_render_target->SetTransform(rotate);
-        // Rysujemy nos i usta na ruchomym render_targer
-        //d2d_render_target->FillGeometry(path_nose, brush1);
-        //d2d_render_target->DrawGeometry(path_nose, brush, brush_eye_width);
-        //d2d_render_target->DrawGeometry(path_mouth, brush, brush_mouth_width);
         D2D1_SIZE_F size_of_watch = watch_bitmap->GetSize();
 
         d2d_render_target->DrawBitmap(watch_bitmap, D2D1::RectF(half_x - (size_of_watch.width) / 2, half_y - (size_of_watch.height) / 2,
@@ -533,34 +374,19 @@ LRESULT CALLBACK WindowProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
         draw_digit(second_digit, 1, size_of_watch);
         draw_digit(third_digit, 2, size_of_watch);
         draw_digit(fourth_digit, 3, size_of_watch);
-        draw_dots(size_of_watch);
-        // 
-        // Przywracamy render_target do stanu nieruchomego (¿eby nic poza nosem i ustami siê nie rusza³o)
+        if ((time_counter/10)%2 == 0)
+            draw_dots(size_of_watch);
+
         d2d_render_target->SetTransform(transformation_to_save);
        
-        
-
-
         d2d_render_target->EndDraw();
         
 
         if (brush) brush->Release();
-        if (brush1) brush1->Release(); 
-        if (path) path->Release();
-        if (path_nose) path_nose->Release();
-        if (path_mouth) path_mouth->Release();
-        if (path_sink) path_sink->Release();
-        if (path_sink_nose) path_sink_nose->Release();
-        if (path_sink_mouth) path_sink_mouth->Release();
-        if (rad_brush_eye1) rad_brush_eye1->Release();
-        if (rad_brush_eye2) rad_brush_eye2->Release();
-        if (rad_brush_body) rad_brush_body->Release();
-        if (rad_stops_eye1) rad_stops_eye1->Release();
-        if (rad_stops_eye2) rad_stops_eye2->Release();
-        if (rad_stops_body) rad_stops_body->Release();
 
         ValidateRect(hwnd, nullptr);
     }
+
     ellipse_center_pupil1.x -= half_x;
     ellipse_center_pupil1.y -= half_y;
     ellipse_center_pupil2.x -= half_x;
