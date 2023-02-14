@@ -5,11 +5,7 @@
 
 #include "zad4_stworek.h"
 using namespace globals;
-ID2D1Bitmap* watch_bitmap = nullptr;
-ID2D1Bitmap* digits_bitmap = nullptr;
-IWICImagingFactory* pWICFactory = NULL;
-#define TIMER_ID 1
-int time_counter = 0;
+
 
 
 LRESULT CALLBACK WindowProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam);
@@ -351,7 +347,6 @@ LRESULT CALLBACK WindowProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
         d2d_render_target->SetTransform(transformation_to_save);
        
         d2d_render_target->EndDraw();
-        
 
         if (brush) brush->Release();
 
