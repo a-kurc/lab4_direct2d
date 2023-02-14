@@ -159,7 +159,7 @@ void draw_digit(int digit, int position, D2D1_SIZE_F size)
         half_y - (size.height) / 2 + 192 + offset_y);
 
     // Draw the cropped bitmap at the specified location
-    d2d_render_target->DrawBitmap(pCroppedBitmap, destRect);
+    d2d_render_target->DrawBitmap(pCroppedBitmap, destRect, 0.7);
 }
 
 int random_digit_in_range(int range)
@@ -198,7 +198,7 @@ void draw_dots(D2D1_SIZE_F size)
         half_y - (size.height) / 2 + 192 + offset_y);
 
     // Draw the cropped bitmap at the specified location
-    d2d_render_target->DrawBitmap(pCroppedBitmap, destRect);
+    d2d_render_target->DrawBitmap(pCroppedBitmap, destRect, 0.7);
 }
 
 
@@ -360,7 +360,7 @@ LRESULT CALLBACK WindowProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
         // Utworzenie pêdzli
         d2d_render_target->CreateSolidColorBrush(brush_color_violet, &brush);
         d2d_render_target->CreateSolidColorBrush(brush1_color, &brush1);
-
+        
          // Utworzenie i zbudowanie geometrii œcie¿ki (cia³a)
         d2d_factory->CreatePathGeometry(&path);
         path->Open(&path_sink);
