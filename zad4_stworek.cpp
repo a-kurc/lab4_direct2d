@@ -8,6 +8,9 @@ using namespace globals;
 ID2D1Bitmap* watch_bitmap = nullptr;
 ID2D1Bitmap* digits_bitmap = nullptr;
 IWICImagingFactory* pWICFactory = NULL;
+#define TIMER_ID 1
+int time_counter = 0;
+
 
 LRESULT CALLBACK WindowProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam);
 
@@ -113,6 +116,7 @@ int WINAPI wWinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, PWSTR pCmdLine
     if (hwnd == NULL)
         return 0;
 
+
     ShowWindow(hwnd, nCmdShow);
 
     // Run the message loop.
@@ -157,6 +161,15 @@ void draw_digit(int digit, int position, D2D1_SIZE_F size)
     d2d_render_target->DrawBitmap(pCroppedBitmap, destRect);
 }
 
+int random_digit_in_range(int range)
+{
+    srand(time(NULL));
+
+    int my_rand = rand() % range;
+
+    return my_rand;
+}
+
 void draw_dots(D2D1_SIZE_F size)
 {
     int offset_x = 126;
@@ -186,6 +199,12 @@ void draw_dots(D2D1_SIZE_F size)
     // Draw the cropped bitmap at the specified location
     d2d_render_target->DrawBitmap(pCroppedBitmap, destRect);
 }
+
+
+int first_digit = random_digit_in_range(2);
+int second_digit = random_digit_in_range(9);
+int third_digit = random_digit_in_range(5);
+int fourth_digit = random_digit_in_range(9);
 
 
 LRESULT CALLBACK WindowProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
@@ -233,6 +252,9 @@ LRESULT CALLBACK WindowProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
         }
 
         load_bitmaps(hwnd);
+
+        SetTimer(hwnd, 1, 10, NULL);
+
         return 0;
     }
     case WM_DESTROY:
@@ -240,94 +262,20 @@ LRESULT CALLBACK WindowProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
         if (d2d_render_target) d2d_render_target->Release();
         if (d2d_factory) d2d_factory->Release();
 
+        KillTimer(hwnd, 1);
+        
         PostQuitMessage(0);
         return 0;
     }
-    case WM_MOUSEMOVE:
+    case WM_TIMER:
     {
-        ellipse_center_eye1.x = half_x - 118;
-        ellipse_center_eye1.y = half_y - 95;
-        ellipse_center_eye2.x = half_x + 118;
-        ellipse_center_eye2.y = half_y - 95;
-
-        ellipse_center_pupil1.x = ellipse_center_eye1.x;
-        ellipse_center_pupil1.y = ellipse_center_eye1.y;
-        ellipse_center_pupil2.x = ellipse_center_eye2.x;
-        ellipse_center_pupil2.y = ellipse_center_eye2.y;
-        if (radius_of_middleeye_squared >= pow((LOWORD(lParam) - ellipse_center_eye1.x), 2) 
-            + pow((HIWORD(lParam) - ellipse_center_eye1.y), 2 )) 
-        {
-            ellipse_center_pupil1.x = LOWORD(lParam);
-            ellipse_center_pupil1.y = HIWORD(lParam);
+        time_counter++;
+        if (time_counter >= 1200) {
+            time_counter = 0;
+            first_digit++;
         }
-        else 
-        {
-            // lewe oko d³ugoœæ du¿ego trójk¹ta w poziomie 
-            float llen_big_tr_in_x = abs(LOWORD(lParam) - ellipse_center_eye1.x);
-            // lewe oko d³ugoœæ du¿ego trójk¹ta w pionie 
-            float llen_big_tr_in_y = abs(HIWORD(lParam) - ellipse_center_eye1.y);
-            // preciwprostok¹tna du¿ego trójk¹ta
-            float llen_big_tr_across = sqrt(pow(llen_big_tr_in_x, 2) + pow(llen_big_tr_in_y, 2));
-            // lewe oko d³ugoœæ ma³ego trójk¹ta w poziomie 
-            float llen_small_tr_in_x = (llen_big_tr_in_x * radius_of_middleeye) / llen_big_tr_across;
-            // lewe oko d³ugoœæ ma³ego trójk¹ta w pionie 
-            float llen_small_tr_in_y = (llen_big_tr_in_y * radius_of_middleeye) / llen_big_tr_across;
-            
-            // jeœli x punktu kursora jest na prawo od œrodka oka
-            if (LOWORD(lParam) > ellipse_center_eye1.x)
-                //œrodek ¿renicy idzie o llen_small_tr_in_x w prawo
-                ellipse_center_pupil1.x = ellipse_center_eye1.x + llen_small_tr_in_x;
-            else
-                //œrodek ¿renicy idzie o llen_small_tr_in_x w lewo
-                ellipse_center_pupil1.x = ellipse_center_eye1.x - llen_small_tr_in_x;
 
-            // jeœli y punktu kursora jest wy¿ej od œrodka oka
-            if (HIWORD(lParam) < ellipse_center_eye1.y)
-                //œrodek ¿renicy idzie o llen_small_tr_in_y w górê
-                ellipse_center_pupil1.y = ellipse_center_eye1.y - llen_small_tr_in_y; 
-            else
-                //œrodek ¿renicy idzie o llen_small_tr_in_y w dó³
-                ellipse_center_pupil1.y = ellipse_center_eye1.y + llen_small_tr_in_y;
-        }
-        if (radius_of_middleeye_squared >= pow((LOWORD(lParam) - ellipse_center_eye2.x), 2) 
-            + pow((HIWORD(lParam) - ellipse_center_eye2.y), 2))
-        {
-            ellipse_center_pupil2.x = LOWORD(lParam);
-            ellipse_center_pupil2.y = HIWORD(lParam);
-        }
-        else
-        {
-            // prawe oko d³ugoœæ du¿ego trójk¹ta w poziomie 
-            float llen_big_tr_in_x = abs(LOWORD(lParam) - ellipse_center_eye2.x);
-            // prawe oko d³ugoœæ du¿ego trójk¹ta w pionie 
-            float llen_big_tr_in_y = abs(HIWORD(lParam) - ellipse_center_eye2.y);
-            // preciwprostok¹tna du¿ego trójk¹ta
-            float llen_big_tr_across = sqrt(pow(llen_big_tr_in_x, 2) + pow(llen_big_tr_in_y, 2));
-            // prawe oko d³ugoœæ ma³ego trójk¹ta w poziomie 
-            float llen_small_tr_in_x = (llen_big_tr_in_x * radius_of_middleeye) / llen_big_tr_across;
-            // prawe oko d³ugoœæ ma³ego trójk¹ta w pionie 
-            float llen_small_tr_in_y = (llen_big_tr_in_y * radius_of_middleeye) / llen_big_tr_across;
-
-            // jeœli x punktu kursora jest na prawo od œrodka oka
-            if (LOWORD(lParam) > ellipse_center_eye2.x)
-                //œrodek ¿renicy idzie o llen_small_tr_in_x w prawo
-                ellipse_center_pupil2.x = ellipse_center_eye2.x + llen_small_tr_in_x;
-            else
-                //œrodek ¿renicy idzie o llen_small_tr_in_x w lewo
-                ellipse_center_pupil2.x = ellipse_center_eye2.x - llen_small_tr_in_x;
-
-            // jeœli y punktu kursora jest wy¿ej od œrodka oka
-            if (HIWORD(lParam) < ellipse_center_eye2.y)
-                //œrodek ¿renicy idzie o llen_small_tr_in_y w górê
-                ellipse_center_pupil2.y = ellipse_center_eye2.y - llen_small_tr_in_y;
-            else
-                //œrodek ¿renicy idzie o llen_small_tr_in_y w dó³
-                ellipse_center_pupil2.y = ellipse_center_eye2.y + llen_small_tr_in_y;
-        }
-        ellipse_center_pupil1.x -= half_x;
-        ellipse_center_pupil1.y -= half_y;
-        ellipse_center_pupil2.x -= half_x;
-        ellipse_center_pupil2.y -= half_y;
+        InvalidateRect(hwnd, nullptr, true);
         return 0;
     }
     case WM_PAINT:
@@ -513,8 +461,8 @@ LRESULT CALLBACK WindowProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
             brush, brush_eye_width);
 
         // Nos i usta
-        time += 0.03f;
-        float angle = 15.0f * sin(time);
+        timev += 0.03f;
+        float angle = 15.0f * sin(timev);
         // Zachowujemy macierz transofmacji
         D2D1_MATRIX_3X2_F transformation_to_save;
         d2d_render_target->GetTransform(&transformation_to_save);
@@ -537,14 +485,15 @@ LRESULT CALLBACK WindowProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
             half_x + (size_of_watch.width) / 2, half_y + (size_of_watch.height) / 2));
 
 
-        draw_digit(1, 0, size_of_watch);
-        draw_digit(7, 1, size_of_watch);
-        draw_digit(3, 2, size_of_watch);
-        draw_digit(6, 3, size_of_watch);
+        draw_digit(first_digit, 0, size_of_watch);
+        draw_digit(second_digit, 1, size_of_watch);
+        draw_digit(third_digit, 2, size_of_watch);
+        draw_digit(fourth_digit, 3, size_of_watch);
         draw_dots(size_of_watch);
 
 
         d2d_render_target->EndDraw();
+        
 
         if (brush) brush->Release();
         if (brush1) brush1->Release(); 
@@ -560,6 +509,8 @@ LRESULT CALLBACK WindowProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
         if (rad_stops_eye1) rad_stops_eye1->Release();
         if (rad_stops_eye2) rad_stops_eye2->Release();
         if (rad_stops_body) rad_stops_body->Release();
+
+        ValidateRect(hwnd, nullptr);
     }
     ellipse_center_pupil1.x -= half_x;
     ellipse_center_pupil1.y -= half_y;
@@ -567,5 +518,6 @@ LRESULT CALLBACK WindowProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
     ellipse_center_pupil2.y -= half_y;
     return 0;
     }
+    
     return DefWindowProc(hwnd, uMsg, wParam, lParam);
 }

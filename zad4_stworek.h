@@ -15,13 +15,14 @@
 
 
 #include <array>
-#include <windows.h>
 #include <wincodec.h>
 /*#include <objbase.h>*/
 //#include <chrono>
 //#include <thread>
-//#include <iostream>
-//#include <ctime>
+#include <iostream>
+#include <ctime>
+#include <cstdlib>
+
 #include <d2d1_1.h>
 #include <dwrite_3.h>
 #include <dwrite.h>
@@ -70,7 +71,7 @@ namespace globals
 	float radius_of_middleeye = r_eye - r_pupil;
 	float initial_width = 0;
 	float initial_higth = 0;
-	float time = 0;
+	float timev = 0;
 }
 
 #endif
