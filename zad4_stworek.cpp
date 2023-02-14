@@ -2,13 +2,9 @@
 #define UNICODE
 #endif 
 
-
 #include "zad4_stworek.h"
 using namespace globals;
 
-
-
-LRESULT CALLBACK WindowProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam);
 
 ID2D1Bitmap* load_bitmap(HWND hwnd, HRESULT hr, const LPCWSTR name, ID2D1Bitmap* lbitmap, IWICImagingFactory* pWICFactory)
 {
@@ -51,6 +47,7 @@ ID2D1Bitmap* load_bitmap(HWND hwnd, HRESULT hr, const LPCWSTR name, ID2D1Bitmap*
     return lbitmap;
 }
 
+
 int load_bitmaps(HWND hwnd)
 {
     CoInitializeEx(nullptr, COINIT_APARTMENTTHREADED);
@@ -71,8 +68,78 @@ int load_bitmaps(HWND hwnd)
     return 0;
 }
 
-int WINAPI wWinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, PWSTR pCmdLine, int nCmdShow)
 
+void draw_digit(int digit, int position, D2D1_SIZE_F size)
+{
+    int offset_x = 126;
+    int offset_y = 102;
+
+    // Create a new bitmap to hold the cropped portion of the original bitmap
+    ID2D1Bitmap* pCroppedBitmap;
+    d2d_render_target->CreateBitmap(
+        D2D1::SizeU(108, 192),
+        NULL,
+        0,
+        D2D1::BitmapProperties(D2D1::PixelFormat(DXGI_FORMAT_B8G8R8A8_UNORM, D2D1_ALPHA_MODE_PREMULTIPLIED)),
+        &pCroppedBitmap
+    );
+
+    // Copy the portion of the original bitmap that you want to crop
+    D2D1_RECT_U sourceRect = D2D1::RectU(0 + digit * 108, 0, 108 + digit * 108, 192);
+    pCroppedBitmap->CopyFromBitmap(NULL, digits_bitmap, &sourceRect);
+
+    // Specify the destination rectangle for the cropped bitmap
+    D2D1_RECT_F destRect = D2D1::RectF(
+        half_x - (size.width) / 2 + offset_x + position * 108 + position * 10 + 50 * (position == 2 || position == 3),
+        half_y - (size.height) / 2 + offset_y,
+        half_x - (size.width) / 2 + 108 + offset_x + position * 108 + position * 10 + 50 * (position == 2 || position == 3),
+        half_y - (size.height) / 2 + 192 + offset_y);
+
+    // Draw the cropped bitmap at the specified location
+    d2d_render_target->DrawBitmap(pCroppedBitmap, destRect, 0.7);
+}
+
+
+int random_digit_in_range(int range)
+{
+    srand(time(NULL));
+    int my_rand = rand() % range;
+    return my_rand;
+}
+
+
+void draw_dots(D2D1_SIZE_F size)
+{
+    int offset_x = 126;
+    int offset_y = 102;
+
+    // Create a new bitmap to hold the cropped portion of the original bitmap
+    ID2D1Bitmap* pCroppedBitmap;
+    d2d_render_target->CreateBitmap(
+        D2D1::SizeU(100, 192),
+        NULL,
+        0,
+        D2D1::BitmapProperties(D2D1::PixelFormat(DXGI_FORMAT_B8G8R8A8_UNORM, D2D1_ALPHA_MODE_PREMULTIPLIED)),
+        &pCroppedBitmap
+    );
+
+    // Copy the portion of the original bitmap that you want to crop
+    D2D1_RECT_U sourceRect = D2D1::RectU(0 + 10 * 108, 0, 100 + 10 * 108, 192);
+    pCroppedBitmap->CopyFromBitmap(NULL, digits_bitmap, &sourceRect);
+
+    // Specify the destination rectangle for the cropped bitmap
+    D2D1_RECT_F destRect = D2D1::RectF(
+        half_x - (size.width) / 2 + offset_x + 2 * 108 + 10 - 25,
+        half_y - (size.height) / 2 + offset_y,
+        half_x - (size.width) / 2 + 100 + offset_x + +2 * 108 + 10,
+        half_y - (size.height) / 2 + 192 + offset_y);
+
+    // Draw the cropped bitmap at the specified location
+    d2d_render_target->DrawBitmap(pCroppedBitmap, destRect, 0.7);
+}
+
+
+int WINAPI wWinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, PWSTR pCmdLine, int nCmdShow)
 {
     // Register the window class.
     const wchar_t CLASS_NAME[] = L"Sample Window Class";
@@ -121,82 +188,6 @@ int WINAPI wWinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, PWSTR pCmdLine
 
     return 0;
 }
-
-
-void draw_digit(int digit, int position, D2D1_SIZE_F size)
-{
-    int offset_x = 126;
-    int offset_y = 102;
-
-    // Create a new bitmap to hold the cropped portion of the original bitmap
-    ID2D1Bitmap* pCroppedBitmap;
-    d2d_render_target->CreateBitmap(
-        D2D1::SizeU(108, 192),
-        NULL,
-        0,
-        D2D1::BitmapProperties(D2D1::PixelFormat(DXGI_FORMAT_B8G8R8A8_UNORM, D2D1_ALPHA_MODE_PREMULTIPLIED)),
-        &pCroppedBitmap
-    );
-
-    // Copy the portion of the original bitmap that you want to crop
-    D2D1_RECT_U sourceRect = D2D1::RectU(0 + digit*108, 0, 108 + digit*108, 192);
-    pCroppedBitmap->CopyFromBitmap(NULL, digits_bitmap, &sourceRect);
-
-    // Specify the destination rectangle for the cropped bitmap
-    D2D1_RECT_F destRect = D2D1::RectF(
-        half_x - (size.width) / 2 + offset_x + position*108 + position*10 + 50*(position == 2 || position == 3), 
-        half_y - (size.height) / 2 + offset_y,
-        half_x - (size.width) / 2 + 108 + offset_x + position*108 + position*10 + 50 * (position == 2 || position == 3),
-        half_y - (size.height) / 2 + 192 + offset_y);
-
-    // Draw the cropped bitmap at the specified location
-    d2d_render_target->DrawBitmap(pCroppedBitmap, destRect, 0.7);
-}
-
-
-int random_digit_in_range(int range)
-{
-    srand(time(NULL));
-    int my_rand = rand() % range;
-    return my_rand;
-}
-
-
-void draw_dots(D2D1_SIZE_F size)
-{
-    int offset_x = 126;
-    int offset_y = 102;
-
-    // Create a new bitmap to hold the cropped portion of the original bitmap
-    ID2D1Bitmap* pCroppedBitmap;
-    d2d_render_target->CreateBitmap(
-        D2D1::SizeU(100, 192),
-        NULL,
-        0,
-        D2D1::BitmapProperties(D2D1::PixelFormat(DXGI_FORMAT_B8G8R8A8_UNORM, D2D1_ALPHA_MODE_PREMULTIPLIED)),
-        &pCroppedBitmap
-    );
-
-    // Copy the portion of the original bitmap that you want to crop
-    D2D1_RECT_U sourceRect = D2D1::RectU(0 + 10 * 108, 0, 100 + 10 * 108, 192);
-    pCroppedBitmap->CopyFromBitmap(NULL, digits_bitmap, &sourceRect);
-
-    // Specify the destination rectangle for the cropped bitmap
-    D2D1_RECT_F destRect = D2D1::RectF(
-        half_x - (size.width) / 2 + offset_x + 2 * 108 + 10 - 25,
-        half_y - (size.height) / 2 + offset_y,
-        half_x - (size.width) / 2 + 100 + offset_x + +2 * 108 + 10,
-        half_y - (size.height) / 2 + 192 + offset_y);
-
-    // Draw the cropped bitmap at the specified location
-    d2d_render_target->DrawBitmap(pCroppedBitmap, destRect, 0.7);
-}
-
-
-int first_digit = random_digit_in_range(2);
-int second_digit = random_digit_in_range(9);
-int third_digit = random_digit_in_range(5);
-int fourth_digit = random_digit_in_range(9);
 
 
 void increase_time()
@@ -273,6 +264,11 @@ LRESULT CALLBACK WindowProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
         }
 
         load_bitmaps(hwnd);
+
+        first_digit = random_digit_in_range(2);
+        second_digit = random_digit_in_range(9);
+        third_digit = random_digit_in_range(5);
+        fourth_digit = random_digit_in_range(9);
 
         SetTimer(hwnd, 1, 10, NULL);
 

@@ -43,6 +43,19 @@ int WINAPI wWinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, PWSTR pCmdLine
 
 LRESULT CALLBACK WindowProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam);
 
+ID2D1Bitmap* load_bitmap(HWND hwnd, HRESULT hr, const LPCWSTR name, ID2D1Bitmap* lbitmap, IWICImagingFactory* pWICFactory);
+
+int load_bitmaps(HWND hwnd);
+
+void draw_digit(int digit, int position, D2D1_SIZE_F size);
+
+int random_digit_in_range(int range);
+
+void draw_dots(D2D1_SIZE_F size);
+
+void increase_time();
+
+
 namespace globals
 {
 	ID2D1Factory7* d2d_factory = nullptr;
@@ -57,6 +70,10 @@ namespace globals
 	ID2D1Bitmap* digits_bitmap = nullptr;
 	IWICImagingFactory* pWICFactory = NULL;
 	int time_counter = 0;
+	int first_digit = 0;
+	int second_digit = 0;
+	int third_digit = 0;
+	int fourth_digit = 0;
 }
 
 #endif
