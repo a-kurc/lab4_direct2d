@@ -72,11 +72,6 @@ int load_bitmaps(HWND hwnd)
     name = L"Digits.png";
     digits_bitmap = load_bitmap(hwnd, hr, name, digits_bitmap, pWICFactory);
 
-    /*name = L"saturn_pink_3.png";
-    planet_saturn_pink.bitmap = load_bitmap(hwnd, hr, name, planet_saturn_pink.bitmap, pWICFactory);
-
-    name = L"clouds1.png";
-    clouds.bitmap = load_bitmap(hwnd, hr, name, clouds.bitmap, pWICFactory);*/
     return 0;
 }
 
@@ -162,14 +157,14 @@ void draw_digit(int digit, int position, D2D1_SIZE_F size)
     d2d_render_target->DrawBitmap(pCroppedBitmap, destRect, 0.7);
 }
 
+
 int random_digit_in_range(int range)
 {
     srand(time(NULL));
-
     int my_rand = rand() % range;
-
     return my_rand;
 }
+
 
 void draw_dots(D2D1_SIZE_F size)
 {
@@ -206,6 +201,7 @@ int first_digit = random_digit_in_range(2);
 int second_digit = random_digit_in_range(9);
 int third_digit = random_digit_in_range(5);
 int fourth_digit = random_digit_in_range(9);
+
 
 void increase_time()
 {
@@ -253,8 +249,6 @@ void increase_time()
 LRESULT CALLBACK WindowProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
 {
     GetClientRect(hwnd, &rc);
-    D2D1_POINT_2F ellipse_center_eye1 = {};
-    D2D1_POINT_2F ellipse_center_eye2 = {};
     half_y = (rc.bottom - rc.top) / 2;
     half_x = (rc.right - rc.left) / 2;
    
@@ -275,16 +269,6 @@ LRESULT CALLBACK WindowProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
                     static_cast<UINT32>(rc.bottom) -
                     static_cast<UINT32>(rc.top))),
             &d2d_render_target);
-
-        ellipse_center_eye1.x = half_x - 118; 
-        ellipse_center_eye1.y = half_y - 95; 
-        ellipse_center_eye2.x = half_x + 118;
-        ellipse_center_eye2.y = half_y - 95;
-        
-        ellipse_center_pupil1.x = ellipse_center_eye1.x - half_x;
-        ellipse_center_pupil1.y = ellipse_center_eye1.y - half_y;
-        ellipse_center_pupil2.x = ellipse_center_eye2.x - half_x;
-        ellipse_center_pupil2.y = ellipse_center_eye2.y - half_y;
 
         if (!rc_initiated_already)
         {
@@ -326,17 +310,7 @@ LRESULT CALLBACK WindowProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
             ((initial_higth) / (rc.bottom - rc.top)), Point2F(0,0));
         d2d_render_target->SetTransform(scale);
 
-        ellipse_center_eye1.x = half_x - 118;
-        ellipse_center_eye1.y = half_y - 95;
-        ellipse_center_eye2.x = half_x + 118;
-        ellipse_center_eye2.y = half_y - 95;
-        ellipse_center_pupil1.x += half_x;
-        ellipse_center_pupil1.y += half_y;
-        ellipse_center_pupil2.x += half_x;
-        ellipse_center_pupil2.y += half_y;
-
         ID2D1SolidColorBrush* brush = nullptr;
-
 
         // Sta³e z kolorami
         D2D1_COLOR_F const brush_color_violet =
@@ -344,21 +318,17 @@ LRESULT CALLBACK WindowProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
 
         // Utworzenie pêdzli
         d2d_render_target->CreateSolidColorBrush(brush_color_violet, &brush);
-
-
         
         // Rysowanie
         d2d_render_target->BeginDraw();
         d2d_render_target->Clear(brush_color_violet);
 
-
-        // Nos i usta
         d2d_render_target->FillRectangle(D2D1::RectF(0, 0, rc.right, rc.bottom), brush);
-        float angle = -8.0f; //* sin(timev);
+        // Obracamy zegar 
+        float angle = -8.0f;
         // Zachowujemy macierz transofmacji
         D2D1_MATRIX_3X2_F transformation_to_save;
         d2d_render_target->GetTransform(&transformation_to_save);
-        // Wprawiamy w ruch render_target (¿eby zrobiæ ruchome nos i usta)
         Matrix3x2F transformation;
         d2d_render_target->GetTransform(&transformation);
         Matrix3x2F rotate = Matrix3x2F::Rotation(angle, Point2F(half_x, half_y));
@@ -366,9 +336,10 @@ LRESULT CALLBACK WindowProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
         d2d_render_target->SetTransform(rotate);
         D2D1_SIZE_F size_of_watch = watch_bitmap->GetSize();
 
-        d2d_render_target->DrawBitmap(watch_bitmap, D2D1::RectF(half_x - (size_of_watch.width) / 2, half_y - (size_of_watch.height) / 2,
-            half_x + (size_of_watch.width) / 2, half_y + (size_of_watch.height) / 2));
-
+        d2d_render_target->DrawBitmap(watch_bitmap, D2D1::RectF(half_x - (size_of_watch.width) / 2, 
+            half_y - (size_of_watch.height) / 2,
+            half_x + (size_of_watch.width) / 2, 
+            half_y + (size_of_watch.height) / 2));
 
         draw_digit(first_digit, 0, size_of_watch);
         draw_digit(second_digit, 1, size_of_watch);
@@ -387,10 +358,6 @@ LRESULT CALLBACK WindowProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
         ValidateRect(hwnd, nullptr);
     }
 
-    ellipse_center_pupil1.x -= half_x;
-    ellipse_center_pupil1.y -= half_y;
-    ellipse_center_pupil2.x -= half_x;
-    ellipse_center_pupil2.y -= half_y;
     return 0;
     }
     
