@@ -1,7 +1,7 @@
 #pragma once
 
-#ifndef ZAD4STWOREK_H
-#define ZAD4STWOREK_H
+#ifndef ZAD3ZEGAR_H
+#define ZAD3ZEGAR_H
 
 #include <windows.h>
 #include <d2d1_3.h>
