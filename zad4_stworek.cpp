@@ -81,6 +81,7 @@ int load_bitmaps(HWND hwnd)
 }
 
 int WINAPI wWinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, PWSTR pCmdLine, int nCmdShow)
+
 {
     // Register the window class.
     const wchar_t CLASS_NAME[] = L"Sample Window Class";
@@ -206,6 +207,48 @@ int second_digit = random_digit_in_range(9);
 int third_digit = random_digit_in_range(5);
 int fourth_digit = random_digit_in_range(9);
 
+void increase_time()
+{
+    if (fourth_digit < 9)
+    {
+        fourth_digit++;
+        return;
+    }
+    if (third_digit < 5)
+    {
+        fourth_digit = 0;
+        third_digit++;
+        return;
+    }
+    if (second_digit < 9 && first_digit < 2) //np. 18, 04, 12
+    {
+        fourth_digit = 0;
+        third_digit = 0;
+        second_digit++;
+        return;
+    }
+    if (first_digit < 2) // 19
+    {
+        fourth_digit = 0;
+        third_digit = 0;
+        second_digit = 0;
+        first_digit++;
+        return;
+    }
+    if (second_digit < 3 && first_digit == 2) //np. 21, 23
+    {
+        fourth_digit = 0;
+        third_digit = 0;
+        second_digit++;
+        return;
+    }
+    fourth_digit = 0;
+    third_digit = 0;
+    second_digit = 0;
+    first_digit = 0;
+    return;
+}
+
 
 LRESULT CALLBACK WindowProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
 {
@@ -270,9 +313,10 @@ LRESULT CALLBACK WindowProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
     case WM_TIMER:
     {
         time_counter++;
-        if (time_counter >= 1200) {
+        if (time_counter >= 5) {
             time_counter = 0;
-            first_digit++;
+
+            increase_time();
         }
 
         InvalidateRect(hwnd, nullptr, true);
@@ -310,9 +354,11 @@ LRESULT CALLBACK WindowProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
         // Kolory dla nosa
         D2D1_COLOR_F const brush1_color =
         { .r = 0.2f, .g = 0.2f, .b = 0.2f, .a = 1.0f };
+        D2D1_COLOR_F const brush_color_violet =
+        { .r = 0.8f, .g = 0.4f, .b = 0.8f, .a = 1.0f };
 
         // Utworzenie pêdzli
-        d2d_render_target->CreateSolidColorBrush(brush_color_black, &brush);
+        d2d_render_target->CreateSolidColorBrush(brush_color_violet, &brush);
         d2d_render_target->CreateSolidColorBrush(brush1_color, &brush1);
 
          // Utworzenie i zbudowanie geometrii œcie¿ki (cia³a)
@@ -458,30 +504,28 @@ LRESULT CALLBACK WindowProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
             brush);
         d2d_render_target->DrawEllipse(
             Ellipse(ellipse_center_pupil2, pupil_ellipse_radii.x, pupil_ellipse_radii.y),
-            brush, brush_eye_width);
+            brush, brush_eye_width);*/
 
         // Nos i usta
-        timev += 0.03f;
-        float angle = 15.0f * sin(timev);
+        //timev += 0.03f;
+        d2d_render_target->FillRectangle(D2D1::RectF(0, 0, rc.right, rc.bottom), brush);
+        float angle = -8.0f; //* sin(timev);
         // Zachowujemy macierz transofmacji
         D2D1_MATRIX_3X2_F transformation_to_save;
         d2d_render_target->GetTransform(&transformation_to_save);
         // Wprawiamy w ruch render_target (¿eby zrobiæ ruchome nos i usta)
         Matrix3x2F transformation;
         d2d_render_target->GetTransform(&transformation);
-        Matrix3x2F rotate = Matrix3x2F::Rotation(angle, Point2F(half_x, half_y + 30));
+        Matrix3x2F rotate = Matrix3x2F::Rotation(angle, Point2F(half_x, half_y));
         rotate.SetProduct(rotate, transformation);
         d2d_render_target->SetTransform(rotate);
         // Rysujemy nos i usta na ruchomym render_targer
-        d2d_render_target->FillGeometry(path_nose, brush1);
-        d2d_render_target->DrawGeometry(path_nose, brush, brush_eye_width);
-        d2d_render_target->DrawGeometry(path_mouth, brush, brush_mouth_width);
-        // Przywracamy render_target do stanu nieruchomego (¿eby nic poza nosem i ustami siê nie rusza³o)
-        d2d_render_target->SetTransform(transformation_to_save);*/
-       
+        //d2d_render_target->FillGeometry(path_nose, brush1);
+        //d2d_render_target->DrawGeometry(path_nose, brush, brush_eye_width);
+        //d2d_render_target->DrawGeometry(path_mouth, brush, brush_mouth_width);
         D2D1_SIZE_F size_of_watch = watch_bitmap->GetSize();
 
-        d2d_render_target->DrawBitmap(watch_bitmap, D2D1::RectF(half_x - (size_of_watch.width)/2, half_y - (size_of_watch.height) / 2,
+        d2d_render_target->DrawBitmap(watch_bitmap, D2D1::RectF(half_x - (size_of_watch.width) / 2, half_y - (size_of_watch.height) / 2,
             half_x + (size_of_watch.width) / 2, half_y + (size_of_watch.height) / 2));
 
 
@@ -490,6 +534,11 @@ LRESULT CALLBACK WindowProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
         draw_digit(third_digit, 2, size_of_watch);
         draw_digit(fourth_digit, 3, size_of_watch);
         draw_dots(size_of_watch);
+        // 
+        // Przywracamy render_target do stanu nieruchomego (¿eby nic poza nosem i ustami siê nie rusza³o)
+        d2d_render_target->SetTransform(transformation_to_save);
+       
+        
 
 
         d2d_render_target->EndDraw();
